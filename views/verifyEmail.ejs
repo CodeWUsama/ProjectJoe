@@ -17,21 +17,24 @@
                                     <div class="card-body">
                                         <div class="small mb-3 text-muted">Please check your email for the activation code.</div>
                                         <!-- Forgot password form-->
-                                        <form method="POST" action="/user/verifyEmail">
+                                        <form method="POST" action="/verifyEmail">
                                             <!-- Form Group (email address)-->
                                             <div class="form-group">
                                                 <label class="small mb-1" for="inputEmailAddress">Activation Code</label>
-                                                <input name="code" class="form-control" id="inputEmailAddress" type="number" aria-describedby="emailHelp" placeholder="Enter Activation Code" />
+                                                <input required name="code" class="form-control" id="inputEmailAddress" type="number" aria-describedby="emailHelp" placeholder="Enter Activation Code" />
                                             </div>
+                                            <% if(data.error) { %>
+                                                <p style="color: red; text-align: center;">Code doesn't matches. Please click on resend email to get new code</p>
+                                                <%} %>
                                             <!-- Form Group (submit options)-->
                                             <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
-                                                <a class="small" href="/user/resendEmail">Resend Email</a>
+                                                <a class="small" href="/resendEmail">Resend Email</a>
                                                 <input type="submit" class="btn btn-primary"/>
                                             </div>
                                         </form>
                                     </div>
                                     <div class="card-footer text-center">
-                                        <div class="small"><a href="/user/singup">Return to signup</a></div>
+                                        <div class="small"><a href="/singup">Return to signup</a></div>
                                     </div>
                                 </div>
                             </div>

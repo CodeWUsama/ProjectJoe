@@ -34,16 +34,16 @@
                                     </div>
                                     <!-- Login form-->
                                     <div style="width: 100%; display: flex; justify-content: center;">
-                                        <img style="border-radius: 50%; height: 100px; width: 100px;" id="myimg" src="/Images/avatar.png"
-                                            alt="your image" />
+                                        <img style="border-radius: 50%; height: 100px; width: 100px;" id="myimg"
+                                            src="/Images/avatar.png" alt="your image" />
                                     </div>
-                                    <form  enctype="multipart/form-data" action="/postSignup" method="POST">
+                                    <form enctype="multipart/form-data" action="/Signup" method="POST">
                                         <input name="status" value="free" hidden />
                                         <!-- Form Image (Image)-->
                                         <div style="margin-bottom: 50px;" class="form-group">
                                             <label class="text-gray-600 small" for="phoneExample">Upload Image</label>
-                                            <input name="img" class="form-control form-control-solid" id="avatar" type="file"
-                                                placeholder="Browse" aria-label="Email Address"
+                                            <input value="" name="img" class="form-control form-control-solid"
+                                                id="avatar" type="file" placeholder="Browse" aria-label="Email Address"
                                                 aria-describedby="emailExample" />
                                         </div>
 
@@ -56,7 +56,8 @@
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small" for="firstNameExample">First
                                                         name</label>
-                                                    <input  name="firstName" required class="form-control form-control-solid" type="text"
+                                                    <input name="firstName" required
+                                                        class="form-control form-control-solid" type="text"
                                                         placeholder="" aria-label="First Name"
                                                         aria-describedby="firstNameExample" />
                                                 </div>
@@ -66,7 +67,8 @@
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small" for="lastNameExample">Last
                                                         name</label>
-                                                    <input name="lastName" required class="form-control form-control-solid" type="text"
+                                                    <input name="lastName" required
+                                                        class="form-control form-control-solid" type="text"
                                                         placeholder="" aria-label="Last Name"
                                                         aria-describedby="lastNameExample" />
                                                 </div>
@@ -75,14 +77,17 @@
                                         <!-- Form Group (email address)-->
                                         <div class="form-group">
                                             <label class="text-gray-600 small" for="emailExample">Email address</label>
-                                            <input name="email" required class="form-control form-control-solid" type="email" placeholder=""
-                                                aria-label="Email Address" aria-describedby="emailExample" />
+                                            <input name="email" required class="form-control form-control-solid"
+                                                type="email" placeholder="" aria-label="Email Address"
+                                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                                aria-describedby="emailExample" />
                                         </div>
 
                                         <!-- Form Group (Phone)-->
                                         <div class="form-group">
                                             <label class="text-gray-600 small" for="phoneExample">Phone</label>
-                                            <input name="phone" required minlength="5" maxlength="255" class="form-control form-control-solid" type="number" placeholder=""
+                                            <input name="phone" required minlength="5" maxlength="255"
+                                                class="form-control form-control-solid" type="number" placeholder=""
                                                 aria-label="Email Address" aria-describedby="emailExample" />
                                         </div>
 
@@ -91,7 +96,8 @@
                                                 <!-- City (City)-->
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small" for="CExample">City</label>
-                                                    <input name="city" required maxlength="255" class="form-control form-control-solid" type="text"
+                                                    <input name="city" required maxlength="255"
+                                                        class="form-control form-control-solid" type="text"
                                                         placeholder="" aria-label="City"
                                                         aria-describedby="firstNameExample" />
                                                 </div>
@@ -100,8 +106,8 @@
                                                 <!-- Country (Country)-->
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small" for="country">Country</label>
-                                                    <select name="country" required style="padding: 5px;" id="country" name="country"
-                                                        class="form-control">
+                                                    <select name="country" required style="padding: 5px;" id="country"
+                                                        name="country" class="form-control">
                                                         <option value="Afghanistan">Afghanistan</option>
                                                         <option value="Åland Islands">Åland Islands</option>
                                                         <option value="Albania">Albania</option>
@@ -391,7 +397,8 @@
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small"
                                                         for="passwordExample">Password</label>
-                                                    <input name="password" required class="form-control form-control-solid" type="password"
+                                                    <input name="password" required
+                                                        class="form-control form-control-solid" type="password"
                                                         placeholder="" aria-label="Password"
                                                         aria-describedby="passwordExample" />
                                                 </div>
@@ -401,7 +408,8 @@
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small"
                                                         for="confirmPasswordExample">Confirm Password</label>
-                                                    <input name="confirmPassword" required class="form-control form-control-solid" type="password"
+                                                    <input name="confirmPassword" required
+                                                        class="form-control form-control-solid" type="password"
                                                         placeholder="" aria-label="Confirm Password"
                                                         aria-describedby="confirmPasswordExample" />
                                                 </div>
@@ -419,15 +427,18 @@
                                                     .
                                                 </label>
                                             </div>
-                                            <input type="submit" class="btn btn-primary"/>
+                                            <input type="submit" class="btn btn-primary" />
                                         </div>
+                                        <% if(data.error) { %>
+                                            <p style="color: red; text-align: center;"><%= data.message %></p>
+                                            <%} %>
                                     </form>
                                 </div>
                                 <hr class="my-0" />
                                 <div class="card-body px-5 py-4">
                                     <div class="small text-center">
                                         Have an account?
-                                        <a href="/user/login">Sign in!</a>
+                                        <a href="/login">Sign in!</a>
                                     </div>
                                 </div>
                             </div>
