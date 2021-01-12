@@ -149,7 +149,7 @@ exports.verifyEmail = (req, res, next) => {
         con.query(sql, function (err, result) {
             if (err) throw err;
             req.session.destroy();
-            return res.render("login", { data: { error: false } });
+            return res.redirect("login");
         });
     }
     else {
@@ -212,13 +212,25 @@ exports.postLogin = async (req, res, next) => {
 
 exports.displayDashbaord = (req, res, next) => {
 
-    let avatar = req.session.avatar;
-    let myArray = (avatar.split("/"));
-    let avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
+    let avatarPath;
+    let data;
 
-    let data = {
-        user: req.session.user,
-        avatar: avatarPath
+    if (req.session.googleAuth) {
+        avatarPath = req.session.avatar;
+        data = {
+            user: req.session.googleUser,
+            avatar: avatarPath
+        }
+    }
+
+    else {
+        let avatar = req.session.avatar;
+        let myArray = (avatar.split("/"));
+        avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
+        data = {
+            user: req.session.user,
+            avatar: avatarPath
+        }
     }
 
     res.render("dashboard", { data: data });
@@ -226,5 +238,7 @@ exports.displayDashbaord = (req, res, next) => {
 
 exports.logout = (req, res, next) => {
     req.session.destroy();
+    req.session = null;
+    req.logout();
     res.redirect("/login");
 }
