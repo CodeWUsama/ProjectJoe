@@ -3,6 +3,6 @@ exports.authroize = (req, res, next) => {
         next();
     }
     else {
-        return res.render("errorBadRequest", { data: { message: "404 - Bad Request Found" } });
+        return res.render("errorBadRequest", { data: { message: "Please Login First To Continue" } });
     }
 }

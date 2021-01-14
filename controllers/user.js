@@ -4,6 +4,9 @@ const nodemailer = require('nodemailer');
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
+const Stripe = require('stripe');
+const stripe = Stripe('sk_test_51I2toSFHfsebTuSvGpJN9fYM7mBYZpUVT6QoZmFHpQx6afwFM7BZCKuShO6VxEQDJJsKoz0ApJMtAhX0f4SljxVt00Nou6oP6P');
+const uuid = require("uuid").v4;
 
 const transport = nodemailer.createTransport(sendgridTransport({
     auth: {
@@ -15,7 +18,6 @@ function validate(user) {
     const schema = Joi.object({
         firstName: Joi.string().max(255).required(),
         lastName: Joi.string().max(255).required(),
-        phone: Joi.string().min(5).max(255).required(),
         email: Joi.string().email().required(),
         city: Joi.string().max(255).required(),
         country: Joi.string().max(255).required(),
@@ -46,7 +48,7 @@ exports.signup = async (req, res, next) => {
     let newPath;
     if (req.file) {
         let oldPath = req.file.path;
-        newPath = "public/Images/" + req.file.originalname;
+        newPath = "public/Images/" + req.body.email + req.file.originalname;
         fs.rename(oldPath, newPath, () => {
         })
     }
@@ -54,7 +56,18 @@ exports.signup = async (req, res, next) => {
         newPath = "/Images/avatar.png"
     }
 
-    const { error } = validate(req.body);
+    const dataToValidate = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        password: req.body.password,
+        confirmPassword: req.body.confirmPassword,
+        city: req.body.city,
+        country: req.body.country,
+        status: req.body.status,
+    }
+
+    const { error } = validate(dataToValidate);
     if (error) return res.render("errorBadRequest", { data: { message: error.details[0].message } });
 
     const firstName = req.body.firstName;
@@ -88,27 +101,28 @@ exports.signup = async (req, res, next) => {
         if (err) throw err;
         if (result.length > 0) {
             alreadyExists = true;
-            return res.render("signup", { data: { error: true, message: "User Already Exists! Try Signing In Instead." } });
+            res.render("signup", { data: { error: true, message: "User Already Exists! Try Signing In Instead." } });
+        }
+        else {
+            if (alreadyExists == false && password == confirmPassword) {
+
+                transport.sendMail({
+                    to: email,
+                    from: 'thunyathep.s@outlook.com',
+                    subject: 'Signup verification',
+                    html: "<h1>Your activation code is " + code + " <h1>"
+                }).then(resp => {
+                    return res.render("verifyEmail", { data: { error: false } });
+                }).catch(err => {
+                    return res.status(400).json({ message: "Error while sending email.... Please try again" });
+                })
+
+            } else {
+                return res.render("signup", { data: { error: true, message: "Password and Confirm Password don't matches" } });
+            }
         }
     });
 
-    if (alreadyExists === false && password === confirmPassword) {
-
-        transport.sendMail({
-            to: email,
-            from: 'thunyathep.s@outlook.com',
-            subject: 'Signup verification',
-            html: "<h1>Your activation code is " + code + " <h1>"
-        }).then(resp => {
-            return res.render("verifyEmail", { data: { error: false } });
-        }).catch(err => {
-            return res.status(400).json({ message: "Error while sending email.... Please try again" });
-        })
-
-
-    } else {
-        return res.render("signup", { data: { error: true, message: "Password and Confirm Password don't matches" } });
-    }
 }
 
 exports.displayLogin = (req, res, next) => {
@@ -159,9 +173,7 @@ exports.verifyEmail = (req, res, next) => {
 
 exports.resendEmail = (req, res, next) => {
     let code = Number.parseInt(1000 + Math.random() * 9000);
-
     req.session.code = code;
-
     transport.sendMail({
         to: req.session.email,
         from: 'thunyathep.s@outlook.com',
@@ -169,6 +181,21 @@ exports.resendEmail = (req, res, next) => {
         html: "<h1>Your activation code is " + code + " <h1>"
     }).then(resp => {
         return res.render("verifyEmail", { data: { error: false } });
+    }).catch(err => {
+        return res.status(500).json({ message: "ERROR while sending email" });
+    })
+}
+
+exports.resendCode = (req, res, next) => {
+    let code = Number.parseInt(1000 + Math.random() * 9000);
+    req.session.code = code;
+    transport.sendMail({
+        to: req.session.email,
+        from: 'thunyathep.s@outlook.com',
+        subject: 'Signup verification',
+        html: "<h1>Your activation code is " + code + " <h1>"
+    }).then(resp => {
+        return res.render("forgotPass-code", { data: { error: false } });
     }).catch(err => {
         return res.status(500).json({ message: "ERROR while sending email" });
     })
@@ -241,4 +268,91 @@ exports.logout = (req, res, next) => {
     req.session = null;
     req.logout();
     res.redirect("/login");
+}
+
+exports.paymentStripe = (req, res, next) => {
+    const product = req.body.product;
+    const token = req.body.token;
+    const idempontencyKey = uuid();
+
+    return stripe.customers.create({
+        email: token.email,
+        source: token.id
+    }).then(customer => {
+        stripe.charges.create({
+            amount: product.price * 100,
+            currency: "usd",
+            customer: customer.id,
+            receipt_email: token.email,
+            description: product.description,
+            shipping: {
+                name: token.card.name,
+                address: {
+                    country: token.card.address_country
+                }
+            }
+        }, { idempontencyKey })
+    }).then(result => {
+        res.status(200).json(result);
+    }).catch(err => {
+        console.log(err);
+    })
+}
+
+exports.searchAccount = (req, res, next) => {
+    res.render("forgotPass-email", { data: { error: false } });
+}
+
+exports.verifyAccount = (req, res, next) => {
+    req.session.email = req.body.email;
+    con.query("SELECT * FROM accounts WHERE email='" + req.session.email + "'", async (err, result, fields) => {
+        if (err) throw err;
+        if (result.length > 0) {
+            let code = Number.parseInt(1000 + Math.random() * 9000);
+            req.session.code = code;
+            transport.sendMail({
+                to: req.session.email,
+                from: 'thunyathep.s@outlook.com',
+                subject: 'Signup verification',
+                html: "<h1>Your activation code is " + code + " <h1>"
+            }).then(resp => {
+                return res.render("forgotPass-code", { data: { error: false } });
+            }).catch(err => {
+                return res.status(500).json({ message: "ERROR while sending email" });
+            })
+        }
+        else {
+            let data = { error: true }
+            res.render("forgotPass-email", { data: data })
+        }
+    });
+}
+
+exports.verifyCode = (req, res, next) => {
+    const enteredCode = req.body.code;
+    const validCode = (req.session.code);
+
+    if (enteredCode == validCode) {
+        return res.render("forgotPass-reset", { data: { error: false } });
+    }
+    else {
+        return res.render("forgotPass-code", { data: { error: true } });
+    }
+}
+
+exports.resetPassword = async(req, res, next) => {
+    const salt = await bcrypt.genSalt(10);
+    let encPass = await bcrypt.hash(req.body.password, salt);
+
+    if (req.body.password == req.body.confirmPassword) {
+        var sql = "UPDATE accounts SET password = '" + encPass + "' WHERE email = '" + req.session.email + "'";
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            req.session.destroy();
+            return res.redirect("login");
+        });
+    }
+    else {
+        return res.render("forgotPass-reset", { data: { error: true } });
+    }
 }

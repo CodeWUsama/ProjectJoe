@@ -4,8 +4,8 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 const con = require("./../mysqlconnection");
 
 passport.use(new GoogleStrategy({
-    clientID: "174429280947-46eii4ni8g207a9sldkdfoafjgoo1ha7.apps.googleusercontent.com",
-    clientSecret: "JB1B2zBENKp2QwJbW4pijjvn",
+    clientID: "701851902748-umfgqbhon1di9f714ko9c4j1fflvvq85.apps.googleusercontent.com",
+    clientSecret: "td6HDZNu-9u83DX3rENstGGs",
     callbackURL: "http://localhost:8080/google/callback"
 },
     function (accessToken, refreshToken, profile, cb) {
@@ -26,8 +26,8 @@ passport.use(new GoogleStrategy({
 ));
 
 passport.use(new FacebookStrategy({
-    clientID: "406109940646865",
-    clientSecret: "18073a628e75e6629fdf19992ac879a7",
+    clientID: "236540824578144",
+    clientSecret: "d812e4ebc0ecc8ef78a6b750996acfd7",
     callbackURL: "http://localhost:8080/facebook/callback",
     profileFields: ['id', 'displayName', 'name', 'picture.type(large)', 'email']
 },

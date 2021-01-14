@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Verify Email</title>
+        <link href="/style2.css" rel="stylesheet" />
+    </head>
+    <body class="bg-primary">
+        <div id="layoutAuthentication">
+            <div id="layoutAuthentication_content">
+                <main>
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-5">
+                                <!-- Basic forgot password form-->
+                                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                    <div class="card-header justify-content-center"><h3 class="font-weight-light my-4">Forgot Password</h3></div>
+                                    <div class="card-body">
+                                        <div class="small mb-3 text-muted">Please enter email associated with your account.</div>
+                                        <!-- Forgot password form-->
+                                        <form method="POST" action="/verifyAccount">
+                                            <!-- Form Group (email address)-->
+                                            <div class="form-group">
+                                                <label class="small mb-1" for="inputEmailAddress">Email</label>
+                                                <input name="email" required class="form-control form-control-solid"
+                                                type="email" placeholder="" aria-label="Email Address"
+                                                title="Email should be like abc@xyz.com"
+                                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                                aria-describedby="emailExample" />
+                                            </div>
+                                            <% if(data.error) { %>
+                                                <p style="color: red; text-align: center;">User does not exist! Please enter valid user email.</p>
+                                                <%} %>
+                                          
+                                            <!-- Form Group (submit options)-->
+                                            <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
+                                                <!-- <a class="small" href="/resendEmail">Resend Email</a> -->
+                                                <input type="submit" class="btn btn-primary"/>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <div class="small"><a href="/signup">Return to signup</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="js/scripts.js"></script>
+    </body>
+</html>
