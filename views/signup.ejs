@@ -43,8 +43,9 @@
                                         <div style="margin-bottom: 50px;" class="form-group">
                                             <label class="text-gray-600 small" for="phoneExample">Upload Image</label>
                                             <input value="" name="img" class="form-control form-control-solid"
-                                                id="avatar" type="file" accept="image/x-png,image/gif,image/jpeg,image/jpg" placeholder="Browse" aria-label="Email Address"
-                                                aria-describedby="emailExample" />
+                                                id="avatar" type="file"
+                                                accept="image/x-png,image/gif,image/jpeg,image/jpg" placeholder="Browse"
+                                                aria-label="Email Address" aria-describedby="emailExample" />
                                         </div>
 
                                         <label class="text-gray-600 small" for="phoneExample">Your Details: </label>
@@ -67,9 +68,8 @@
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small" for="lastNameExample">
                                                         Middle Name</label>
-                                                    <input name="middleName"
-                                                        class="form-control form-control-solid" type="text"
-                                                        placeholder="" aria-label="Last Name"
+                                                    <input name="middleName" class="form-control form-control-solid"
+                                                        type="text" placeholder="" aria-label="Last Name"
                                                         aria-describedby="lastNameExample" />
                                                 </div>
                                             </div>
@@ -89,7 +89,8 @@
                                             <div class="col-md-6">
                                                 <!-- Form Group (first name)-->
                                                 <div class="form-group">
-                                                    <label class="text-gray-600 small" for="firstNameExample">Display Name</label>
+                                                    <label class="text-gray-600 small" for="firstNameExample">Display
+                                                        Name</label>
                                                     <input name="displayName" required
                                                         class="form-control form-control-solid" type="text"
                                                         placeholder="" aria-label="First Name"
@@ -110,9 +111,9 @@
                                         <!-- Form Group (Phone)-->
                                         <div class="form-group">
                                             <label class="text-gray-600 small" for="phoneExample">Phone</label>
-                                            <input name="phone" 
-                                                class="form-control form-control-solid" type="number" placeholder=""
-                                                aria-label="Email Address" aria-describedby="emailExample" />
+                                            <input name="phone" class="form-control form-control-solid" type="number"
+                                                placeholder="" aria-label="Email Address"
+                                                aria-describedby="emailExample" />
                                         </div>
 
                                         <div class="form-row">
@@ -510,7 +511,16 @@
         }
     }
     $("#avatar").change(function () {
-        console.log("hi");
+        maxFileSize = 2 * 1024 * 1024;
+        fileSize = this.files[0].size;
+        console.log("Your File size is ", fileSize);
+        if (fileSize > maxFileSize) {
+            this.setCustomValidity("File size should be less than 2mb");
+            this.reportValidity();
+        }
+        else {
+            this.setCustomValidity("");
+        }
         readURL(this);
     });
 </script>
