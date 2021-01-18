@@ -20,92 +20,15 @@
                             <!-- Social registration form-->
                             <div class="card my-5">
                                 <div class="card-body p-5 text-center">
-                                    <div class="h3 font-weight-light mb-3">Create an Account</div>
-                                    <div class="small text-muted mb-2">Sign in using...</div>
-                                    <!-- Social registration links-->
-                                    <a class="btn btn-icon btn-facebook mx-1" href="/facebook"><i
-                                            class="fab fa-facebook-f fa-fw fa-sm"></i></a>
-                                    <a class="btn btn-icon btn-google mx-1" href="/google"><i
-                                            class="fab fa-google fa-fw fa-sm"></i></a>
+                                    <div class="h3 font-weight-light mb-3">Complete Profile</div>
                                 </div>
                                 <hr class="my-0" />
                                 <div class="card-body p-5">
-                                    <div class="text-center small text-muted mb-4">...or enter your information below.
+                                    <div class="text-center small text-muted mb-4">Please enter the below details to complete your profile
                                     </div>
                                     <!-- Login form-->
-                                    <div style="width: 100%; display: flex; justify-content: center;">
-                                        <img style="border-radius: 50%; height: 100px; width: 100px;" id="myimg"
-                                            src="/Images/avatar.png" alt="your image" />
-                                    </div>
-                                    <form enctype="multipart/form-data" action="/Signup" method="POST">
+                                    <form action="/completeProfile" method="POST">
                                         <input name="status" value="free" hidden />
-                                        <!-- Form Image (Image)-->
-                                        <div style="margin-bottom: 50px;" class="form-group">
-                                            <label class="text-gray-600 small" for="phoneExample">Upload Image</label>
-                                            <input value="" name="img" class="form-control form-control-solid"
-                                                id="avatar" type="file" accept="image/x-png,image/gif,image/jpeg,image/jpg" placeholder="Browse" aria-label="Email Address"
-                                                aria-describedby="emailExample" />
-                                        </div>
-
-                                        <label class="text-gray-600 small" for="phoneExample">Your Details: </label>
-
-                                        <!-- Form Row-->
-                                        <div class="form-row">
-                                            <div class="col-md-6">
-                                                <!-- Form Group (first name)-->
-                                                <div class="form-group">
-                                                    <label class="text-gray-600 small" for="firstNameExample">First
-                                                        name</label>
-                                                    <input name="firstName" required
-                                                        class="form-control form-control-solid" type="text"
-                                                        placeholder="" aria-label="First Name"
-                                                        aria-describedby="firstNameExample" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <!-- Form Group (last name)-->
-                                                <div class="form-group">
-                                                    <label class="text-gray-600 small" for="lastNameExample">
-                                                        Middle Name</label>
-                                                    <input name="middleName"
-                                                        class="form-control form-control-solid" type="text"
-                                                        placeholder="" aria-label="Last Name"
-                                                        aria-describedby="lastNameExample" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-row">
-                                            <div class="col-md-6">
-                                                <!-- Form Group (last name)-->
-                                                <div class="form-group">
-                                                    <label class="text-gray-600 small" for="lastNameExample">Last
-                                                        name</label>
-                                                    <input name="lastName" required
-                                                        class="form-control form-control-solid" type="text"
-                                                        placeholder="" aria-label="Last Name"
-                                                        aria-describedby="lastNameExample" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <!-- Form Group (first name)-->
-                                                <div class="form-group">
-                                                    <label class="text-gray-600 small" for="firstNameExample">Display Name</label>
-                                                    <input name="displayName" required
-                                                        class="form-control form-control-solid" type="text"
-                                                        placeholder="" aria-label="First Name"
-                                                        aria-describedby="firstNameExample" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Form Group (email address)-->
-                                        <div class="form-group">
-                                            <label class="text-gray-600 small" for="emailExample">Email address</label>
-                                            <input name="email" required class="form-control form-control-solid"
-                                                type="email" placeholder="" aria-label="Email Address"
-                                                title="Email should be like abc@xyz.com"
-                                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                                                aria-describedby="emailExample" />
-                                        </div>
 
                                         <!-- Form Group (Phone)-->
                                         <div class="form-group">
@@ -414,63 +337,13 @@
                                             </div>
                                         </div>
 
-                                        <!-- Form Row-->
-                                        <div class="form-row">
-                                            <div class="col-md-6">
-                                                <!-- Form Group (choose password)-->
-                                                <div class="form-group">
-                                                    <label class="text-gray-600 small"
-                                                        for="passwordExample">Password</label>
-                                                    <input name="password" required
-                                                        title="Password should be minimum of length 8 and must contain numbers and alphabets only. "
-                                                        pattern="^[0-9a-zA-Z]+$" required name="password"
-                                                        class="form-control form-control-solid" type="password"
-                                                        placeholder="" aria-label="Password"
-                                                        aria-describedby="passwordExample" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <!-- Form Group (confirm password)-->
-                                                <div class="form-group">
-                                                    <label class="text-gray-600 small"
-                                                        for="confirmPasswordExample">Confirm Password</label>
-                                                    <input name="confirmPassword" required
-                                                        title="Password should be minimum of length 8 and must contain numbers and alphabets only. "
-                                                        pattern="^[0-9a-zA-Z]+$" required name="password"
-                                                        class="form-control form-control-solid" type="password"
-                                                        placeholder="" aria-label="Confirm Password"
-                                                        aria-describedby="confirmPasswordExample" />
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         <!-- Form Group (form submission)-->
                                         <div class="form-group d-flex align-items-center justify-content-between">
-                                            <div class="custom-control custom-control-solid custom-checkbox">
-                                                <input required class="custom-control-input small" id="customCheck1"
-                                                    type="checkbox" />
-                                                <label class="custom-control-label mr-3" for="customCheck1">
-                                                    I accept the
-                                                    <a href="#!">terms &amp; conditions</a>
-                                                    .
-                                                </label>
-                                            </div>
                                             <input type="submit" class="btn btn-primary" />
                                         </div>
-                                        <% if(data.error) { %>
-                                            <p style="color: red; text-align: center;">
-                                                <%= data.message %>
-                                            </p>
-                                            <%} %>
                                     </form>
                                 </div>
                                 <hr class="my-0" />
-                                <div class="card-body px-5 py-4">
-                                    <div class="small text-center">
-                                        Have an account?
-                                        <a href="/login">Sign in!</a>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

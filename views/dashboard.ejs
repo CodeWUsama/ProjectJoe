@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <link href="/style2.css" rel="stylesheet" />
+    <link href="/css/style2.css" rel="stylesheet" />
     <title>Dashboard</title>
 </head>
 
@@ -22,6 +22,9 @@
                                     </div>
                                     <p class="page-header-text">This dashboard presents you with multiple options to
                                         manage your account</p>
+                                        <% if(data.showUpdateProfile) { %>
+                                            <a href="/completeProfile"><button class="btn btn-primary">Update Profile</button></a>
+                                            <%} %>
                                         <a href="/logout"><button class="btn btn-primary">Logout</button></a>
                                 </div>
                             </div>

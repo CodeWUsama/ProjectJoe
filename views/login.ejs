@@ -3,10 +3,10 @@
 
 <head>
     <title>Login</title>
-    <link href="/style2.css" rel="stylesheet" />
+    <link href="/css/style2.css" rel="stylesheet" />
     <script data-search-pseudo-elements defer
         src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js" crossorigin="anonymous"></script>
-        
+
 </head>
 
 <body class="bg-primary">
@@ -32,28 +32,30 @@
                                     <form method="POST" action="/login">
                                         <!-- Form Group (email address)-->
                                         <% if(data.error) { %>
-                                            <p style="color: red; text-align: center;">Invalid Email/Password</p>
+                                            <p style="color: red; text-align: center;">
+                                                <%= data.message %>
+                                            </p>
                                             <%} %>
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small" for="emailExample">Email
                                                         address</label>
                                                     <input required name="email" class="form-control form-control-solid"
-                                                    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-                                                    title="Email should be like abc@xyz.com"
-                                                    type="email"
-                                                    placeholder="" aria-label="Email Address"
+                                                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                                        title="Email should be like abc@xyz.com" type="email"
+                                                        placeholder="" aria-label="Email Address"
                                                         aria-describedby="emailExample" />
                                                 </div>
                                                 <!-- Form Group (password)-->
                                                 <div class="form-group">
                                                     <label class="text-gray-600 small"
                                                         for="passwordExample">Password</label>
-                                                    <input 
-                                                    title="Password should be minimum of length 8 and must contain numbers and alphabets only. "
+                                                    <input
+                                                        title="Password should be minimum of length 8 and must contain numbers and alphabets only. "
                                                         pattern="^[0-9a-zA-Z]+$" required name="password"
                                                         class="form-control form-control-solid" type="password"
                                                         placeholder="" aria-label="Password"
-                                                        aria-describedby="passwordExample" />
+                                                        aria-describedby="passwordExample"
+                                                        minlength="8" />
                                                 </div>
                                                 <!-- Form Group (forgot password link)-->
                                                 <!-- Form Group (login box)-->

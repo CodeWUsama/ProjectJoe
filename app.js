@@ -34,6 +34,7 @@ app.get('/google/callback',
         req.session.isLoggedIn = true;
         req.session.googleAuth = true;
         req.session.googleUser = req.user.displayName;
+        req.session.email = req.user.emails[0].value;
         req.session.avatar = req.user.photos[0].value;
         res.redirect('/dashboard');
     });
@@ -41,10 +42,9 @@ app.get('/google/callback',
 app.get('/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/login' }),
     function (req, res) {
-        console.log(req.user);
-        console.log("success");
         req.session.isLoggedIn = true;
         req.session.googleAuth = true;
+        req.session.email = req.user.emails[0].value;
         req.session.googleUser = req.user.displayName;
         req.session.avatar = req.user.photos[0].value;
         res.redirect('/dashboard');

@@ -4,9 +4,7 @@ const nodemailer = require('nodemailer');
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
-const Stripe = require('stripe');
-const stripe = Stripe('sk_test_51I2toSFHfsebTuSvGpJN9fYM7mBYZpUVT6QoZmFHpQx6afwFM7BZCKuShO6VxEQDJJsKoz0ApJMtAhX0f4SljxVt00Nou6oP6P');
-const uuid = require("uuid").v4;
+
 
 const transport = nodemailer.createTransport(sendgridTransport({
     auth: {
@@ -18,6 +16,7 @@ function validate(user) {
     const schema = Joi.object({
         firstName: Joi.string().max(255).required(),
         lastName: Joi.string().max(255).required(),
+        displayName: Joi.string().max(255).required(),
         email: Joi.string().email().required(),
         city: Joi.string().max(255).required(),
         country: Joi.string().max(255).required(),
@@ -32,7 +31,6 @@ function validate(user) {
 function validatelogin(user) {
 
     const schema = Joi.object({
-
         email: Joi.string().email().required(),
         password: Joi.string().regex(/^[0-9a-zA-Z]+$/).min(8).max(30)
     });
@@ -41,7 +39,7 @@ function validatelogin(user) {
 }
 
 exports.displayLandingPage = (req, res, next) => {
-    res.render("index");
+    res.render("index.ejs");
 }
 
 exports.signup = async (req, res, next) => {
@@ -65,6 +63,7 @@ exports.signup = async (req, res, next) => {
         city: req.body.city,
         country: req.body.country,
         status: req.body.status,
+        displayName: req.body.displayName
     }
 
     const { error } = validate(dataToValidate);
@@ -79,12 +78,16 @@ exports.signup = async (req, res, next) => {
     const country = req.body.country;
     const status = req.body.status;
     const phone = req.body.phone;
+    const displayName = req.body.displayName;
     const image = newPath;
+    const middleName = req.body.middleName;
     const salt = await bcrypt.genSalt(10);
     let encPass = await bcrypt.hash(password, salt);
 
     req.session.firstName = firstName;
     req.session.lastName = lastName;
+    req.session.middleName = middleName;
+    req.session.displayName = displayName;
     req.session.email = email;
     req.session.password = encPass;
     req.session.city = city;
@@ -159,11 +162,15 @@ exports.verifyEmail = (req, res, next) => {
     const validCode = (req.session.code);
 
     if (enteredCode == validCode) {
-        let sql = "INSERT INTO accounts (firstName,lastName,email,password,city,country,status,phone,image) VALUES ('" + req.session.firstName + "','" + req.session.lastName + "','" + req.session.email + "','" + req.session.password + "','" + req.session.city + "','" + req.session.country + "','" + req.session.status + "','" + req.session.phone + "','" + req.session.image + "')";
+        let sql = "INSERT INTO accounts (firstName,middleName,lastName,displayName,email,password,city,country,status,phone) VALUES ('" + req.session.firstName + "','" + req.session.middleName + "','" + req.session.lastName + "','" + req.session.displayName + "','" + req.session.email + "','" + req.session.password + "','" + req.session.city + "','" + req.session.country + "','" + req.session.status + "','" + req.session.phone + "')";
         con.query(sql, function (err, result) {
             if (err) throw err;
-            req.session.destroy();
-            return res.redirect("login");
+            let userId = result.insertId;
+            let sql = "INSERT INTO userAvatarImage (userId,imageSource) VALUES ('" + userId + "','" + req.session.image + "')";
+            con.query(sql, function (err, result) {
+                req.session.destroy();
+                return res.redirect("login");
+            })
         });
     }
     else {
@@ -209,27 +216,29 @@ exports.postLogin = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
 
-    con.query("SELECT * FROM accounts WHERE email='" + email + "'", async (err, result, fields) => {
+    con.query("SELECT * FROM accounts INNER JOIN userAvatarImage WHERE email='" + email + "'", async (err, result, fields) => {
         if (err) throw err;
         if (result.length > 0) {
             let validPass = result[0].password;
             const isValid = await bcrypt.compare(password, validPass);
             if (isValid) {
                 req.session.isLoggedIn = true;
-                req.session.user = (result[0].firstName + " " + result[0].lastName);
-                req.session.avatar = result[0].image;
+                req.session.displayName = result[0].displayName;
+                req.session.avatar = result[0].imageSource;
                 return res.redirect("/dashboard");
             }
             else {
                 let data = {
-                    error: true
+                    error: true,
+                    message: "Incorrect Password"
                 }
                 res.render("login", { data: data })
             }
         }
         else {
             let data = {
-                error: true
+                error: true,
+                message: "User don't exist. Signup Instead."
             }
             res.render("login", { data: data })
         }
@@ -246,7 +255,8 @@ exports.displayDashbaord = (req, res, next) => {
         avatarPath = req.session.avatar;
         data = {
             user: req.session.googleUser,
-            avatar: avatarPath
+            avatar: avatarPath,
+            showUpdateProfile: true
         }
     }
 
@@ -255,7 +265,7 @@ exports.displayDashbaord = (req, res, next) => {
         let myArray = (avatar.split("/"));
         avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
         data = {
-            user: req.session.user,
+            user: req.session.displayName,
             avatar: avatarPath
         }
     }
@@ -268,35 +278,6 @@ exports.logout = (req, res, next) => {
     req.session = null;
     req.logout();
     res.redirect("/login");
-}
-
-exports.paymentStripe = (req, res, next) => {
-    const product = req.body.product;
-    const token = req.body.token;
-    const idempontencyKey = uuid();
-
-    return stripe.customers.create({
-        email: token.email,
-        source: token.id
-    }).then(customer => {
-        stripe.charges.create({
-            amount: product.price * 100,
-            currency: "usd",
-            customer: customer.id,
-            receipt_email: token.email,
-            description: product.description,
-            shipping: {
-                name: token.card.name,
-                address: {
-                    country: token.card.address_country
-                }
-            }
-        }, { idempontencyKey })
-    }).then(result => {
-        res.status(200).json(result);
-    }).catch(err => {
-        console.log(err);
-    })
 }
 
 exports.searchAccount = (req, res, next) => {
@@ -340,7 +321,7 @@ exports.verifyCode = (req, res, next) => {
     }
 }
 
-exports.resetPassword = async(req, res, next) => {
+exports.resetPassword = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     let encPass = await bcrypt.hash(req.body.password, salt);
 
@@ -355,4 +336,22 @@ exports.resetPassword = async(req, res, next) => {
     else {
         return res.render("forgotPass-reset", { data: { error: true } });
     }
+}
+
+exports.displayCompleteProfile = (req, res) => {
+    res.render("completeProfile");
+}
+
+exports.completeProfile = (req, res) => {
+
+    const city = req.body.city;
+    const country = req.body.country;
+    const phone = req.body.phone;
+
+    var sql = "UPDATE accounts SET city = '" + city + "'," + "country='" + country + "'," + "phone='" + phone + "' WHERE email = '" + req.session.email + "'";
+    con.query(sql, function (err, result) {
+        if (err) throw err;
+        return res.redirect("/dashboard");
+    });
+
 }

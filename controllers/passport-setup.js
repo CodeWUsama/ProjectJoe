@@ -9,15 +9,21 @@ passport.use(new GoogleStrategy({
     callbackURL: "http://localhost:8080/google/callback"
 },
     function (accessToken, refreshToken, profile, cb) {
-        //Search that profile.id in mysql if not found 
+        //Search that profile.id in mysql 
         let emailToSearch = profile.emails[0].value;
+        let imageToSave = profile.photos[0].value;
         con.query("SELECT * FROM accounts WHERE email='" + emailToSearch + "'", async (err, result, fields) => {
             if (err) throw err;
             if (!(result.length > 0)) {
-                let sql = "INSERT INTO accounts (firstName,lastName,email,status,image) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','" + "free" + "','" + profile.photos[0].value + "')";
+                let sql = "INSERT INTO accounts (firstName,lastName,email,displayName,status) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','"+ profile.displayName + "','" + "free" + "')";
                 con.query(sql, function (err, result) {
                     if (err) throw err;
-                    return cb(null, profile);
+                    let userId = result.insertId;
+                    let sql = "INSERT INTO userAvatarImage (userId,avatarImageUrl) VALUES ('" + userId + "','" + imageToSave + "')";
+                    con.query(sql, function (err, result) {
+                        if (err) throw err;
+                        return cb(null, profile);
+                    })
                 });
             }
         });
@@ -26,20 +32,26 @@ passport.use(new GoogleStrategy({
 ));
 
 passport.use(new FacebookStrategy({
-    clientID: "236540824578144",
-    clientSecret: "d812e4ebc0ecc8ef78a6b750996acfd7",
+    clientID: "406109940646865",
+    clientSecret: "18073a628e75e6629fdf19992ac879a7",
     callbackURL: "http://localhost:8080/facebook/callback",
     profileFields: ['id', 'displayName', 'name', 'picture.type(large)', 'email']
 },
     function (accessToken, refreshToken, profile, done) {
         let emailToSearch = profile.emails[0].value;
+        let imageToSave = profile.photos[0].value;
         con.query("SELECT * FROM accounts WHERE email='" + emailToSearch + "'", async (err, result, fields) => {
             if (err) throw err;
             if (!(result.length > 0)) {
-                let sql = "INSERT INTO accounts (firstName,lastName,email,status,image) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','" + "free" + "','" + profile.photos[0].value + "')";
+                let sql = "INSERT INTO accounts (firstName,lastName,email,displayName,status) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','"+ profile.displayName + "','" + "free" + "')";
                 con.query(sql, function (err, result) {
                     if (err) throw err;
-                    return done(null, profile);
+                    let userId = result.insertId;
+                    let sql = "INSERT INTO userAvatarImage (userId,avatarImageUrl) VALUES ('" + userId + "','" + imageToSave + "')";
+                    con.query(sql, function (err, result) {
+                        if (err) throw err;
+                        return done(null, profile);
+                    })
                 });
             }
         });
