@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
-
+const stripe = require("stripe")("sk_test_51I2toSFHfsebTuSvGpJN9fYM7mBYZpUVT6QoZmFHpQx6afwFM7BZCKuShO6VxEQDJJsKoz0ApJMtAhX0f4SljxVt00Nou6oP6P");
 
 const transport = nodemailer.createTransport(sendgridTransport({
     auth: {
@@ -168,8 +168,12 @@ exports.verifyEmail = (req, res, next) => {
             let userId = result.insertId;
             let sql = "INSERT INTO userAvatarImage (userId,imageSource) VALUES ('" + userId + "','" + req.session.image + "')";
             con.query(sql, function (err, result) {
-                req.session.destroy();
-                return res.redirect("login");
+                let sql = "INSERT INTO userPlan (userId,planLevel) VALUES ('" + userId + "','" + "free" + "')";
+                con.query(sql, function (err, result) {
+                    if (err) throw err;
+                    req.session.destroy();
+                    return res.redirect("login");
+                })
             })
         });
     }
@@ -225,7 +229,13 @@ exports.postLogin = async (req, res, next) => {
                 req.session.isLoggedIn = true;
                 req.session.displayName = result[0].displayName;
                 req.session.avatar = result[0].imageSource;
-                return res.redirect("/dashboard");
+                req.session.email = req.body.email;
+                con.query("SELECT * FROM userPlan where userId='" + result[0].userId + "'", (err, result, fields) => {
+                    if (result.length > 0) {
+                        req.session.plan = result[0].planLevel;
+                        return res.redirect("/dashboard");
+                    }
+                })
             }
             else {
                 let data = {
@@ -250,13 +260,15 @@ exports.displayDashbaord = (req, res, next) => {
 
     let avatarPath;
     let data;
-
+    // console.log(req.session.plan);
+    let showUpgradePlan = req.session.plan == "free" ? true : false;
     if (req.session.googleAuth) {
         avatarPath = req.session.avatar;
         data = {
             user: req.session.googleUser,
             avatar: avatarPath,
-            showUpdateProfile: true
+            showUpdateProfile: true,
+            showUpgradePlan: showUpgradePlan
         }
     }
 
@@ -266,10 +278,10 @@ exports.displayDashbaord = (req, res, next) => {
         avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
         data = {
             user: req.session.displayName,
-            avatar: avatarPath
+            avatar: avatarPath,
+            showUpgradePlan: showUpgradePlan
         }
     }
-
     res.render("dashboard", { data: data });
 }
 
@@ -353,5 +365,49 @@ exports.completeProfile = (req, res) => {
         if (err) throw err;
         return res.redirect("/dashboard");
     });
+
+}
+
+exports.payment = async (req, res) => {
+
+    try {
+        const price = await stripe.prices.create({
+            product: 'prod_Imxwe7LHcEmMBA',
+            unit_amount: 1900,
+            currency: 'usd',
+            recurring: {
+                interval: 'month',
+            },
+        })
+
+        const customer = await stripe.customers.create({
+            email: req.body.stripeEmail,
+            source: req.body.stripeToken
+        });
+
+        stripe.subscriptions.create({
+            customer: customer.id,
+            items: [{
+                price: price.id,
+            }],
+        }).then(result => {
+            let sql = "Select * from accounts where email='" + req.session.email + "'";
+            con.query(sql, function (err, result) {
+                if (err) throw err;
+                let sql = "UPDATE userPlan SET planLevel = 'premium' WHERE userId = '" + result[0].userId + "'";
+                con.query(sql, function (err, result) {
+                    if (err) throw err;
+                    req.session.plan = "premium";
+                    res.redirect("/dashboard");
+                });
+            });
+        }).catch(err => {
+            req.session.plan = "free";
+            res.redirect("/dashboard");
+        })
+
+    } catch (error) {
+        res.render("errorBadRequest",{data:{message:error.message}})
+    }
 
 }

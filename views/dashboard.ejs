@@ -4,6 +4,8 @@
 <head>
     <link href="/css/style2.css" rel="stylesheet" />
     <title>Dashboard</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="/js/script.js" defer></script>
 </head>
 
 <body>
@@ -17,15 +19,25 @@
                             <div class="row justify-content-center">
                                 <div class="col-lg-8">
                                     <div style="display: flex; align-items: center; justify-content: space-between;">
-                                    <h1 class="page-header-title mb-3">Welcome <%= data.user %></h1>
-                                    <img style="border-radius: 50%; height: 100px; width: 100px;" src="<%= data.avatar %>" alt="Avatar">
+                                        <h1 class="page-header-title mb-3">Welcome <%= data.user %>
+                                        </h1>
+                                        <img style="border-radius: 50%; height: 100px; width: 100px;"
+                                            src="<%= data.avatar %>" alt="Avatar">
                                     </div>
                                     <p class="page-header-text">This dashboard presents you with multiple options to
                                         manage your account</p>
-                                        <% if(data.showUpdateProfile) { %>
-                                            <a href="/completeProfile"><button class="btn btn-primary">Update Profile</button></a>
-                                            <%} %>
-                                        <a href="/logout"><button class="btn btn-primary">Logout</button></a>
+                                    <% if(data.showUpdateProfile) { %>
+                                        <a href="/completeProfile"><button class="btn btn-primary">Update
+                                                Profile</button></a>
+                                        <%} %>
+
+                                            <% if(data.showUpgradePlan) { %>
+                                                <a href="/pricing"><button class="btn btn-primary">Upgrade
+                                                        Plan</button></a>
+                                                <%} %>
+
+                                                    <a href="/logout"><button
+                                                            class="btn btn-primary">Logout</button></a>
                                 </div>
                             </div>
                         </div>

@@ -7,6 +7,7 @@ const routes = require("./routes/user");
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 const passport = require("passport");
+const con = require('./mysqlconnection');
 require("./controllers/passport-setup");
 app.use(session({
     secret: "secret_key",
@@ -18,7 +19,6 @@ app.use(express.json())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/", routes);
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -31,25 +31,46 @@ app.get('/facebook',
 app.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     function (req, res) {
+        req.session.plan = req.user.plan;
         req.session.isLoggedIn = true;
         req.session.googleAuth = true;
         req.session.googleUser = req.user.displayName;
         req.session.email = req.user.emails[0].value;
         req.session.avatar = req.user.photos[0].value;
-        res.redirect('/dashboard');
+        con.query("SELECT * FROM accounts INNER JOIN userPlan where email='" + req.user.emails[0].value + "'", async (err, result, fields) => {
+            if (err) throw err;
+            if (result.length > 0) {
+                req.session.plan = result[0].planLevel;
+                res.redirect('/dashboard');
+            }
+            else {
+                req.session.plan = "free";
+                res.redirect("/dashboard");
+            }
+        })
     });
 
 app.get('/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/login' }),
     function (req, res) {
+        req.session.plan = req.user.plan;
         req.session.isLoggedIn = true;
         req.session.googleAuth = true;
         req.session.email = req.user.emails[0].value;
         req.session.googleUser = req.user.displayName;
         req.session.avatar = req.user.photos[0].value;
-        res.redirect('/dashboard');
+        con.query("SELECT * FROM accounts INNER JOIN userPlan where email='" + req.user.emails[0].value + "'", async (err, result, fields) => {
+            if (err) throw err;
+            if (result.length > 0) {
+                req.session.plan = result[0].planLevel;
+                res.redirect('/dashboard');
+            }
+            else {
+                req.session.plan = "free";
+                res.redirect("/dashboard");
+            }
+        })
     });
-
 
 app.listen(8080);
 

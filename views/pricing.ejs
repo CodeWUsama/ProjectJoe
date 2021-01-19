@@ -80,7 +80,8 @@
                                             </li>
                                             <div class="pricing-list-item">
                                                 <div class="pricing-list-item">
-                                                    <a href="/signup"><button style="margin-top: 39px; width: 100px;" class="btn btn-primary">Select</button></a>
+                                                    <button disabled style="margin-top: 39px; width: 150px;"
+                                                        class="btn btn-primary">Your Current Plan</button>
                                                 </div>
                                             </div>
                                         </ul>
@@ -135,7 +136,16 @@
                                             </li>
                                             <div class="pricing-list-item">
                                                 <div class="pricing-list-item">
-                                                    <button disabled style="margin-top: 39px; width: 100px;" class="btn btn-primary">Coming Soon</button>
+                                                    <form style="margin-top: 30px;" action="/payment" method="POST">
+                                                        <script src="//checkout.stripe.com/v2/checkout.js"
+                                                            class="stripe-button"
+                                                            data-key="pk_test_51I2toSFHfsebTuSvQwQDzWevPkaCUCfH3XzbFG2GydTzfjzMchZQtzwNzpsFYWHxqUkab5mGUEnWc1JcoEqQCney00IyhXY0kT"
+                                                            data-amount="7000" data-currency="usd"
+                                                            data-name="Gautam Sharma"
+                                                            data-description="Buy React.js Complete Course"
+                                                            data-locale="auto">
+                                                            </script>
+                                                    </form>
                                                 </div>
                                             </div>
                                         </ul>
