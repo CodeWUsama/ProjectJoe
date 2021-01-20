@@ -36,6 +36,12 @@
                                                         Plan</button></a>
                                                 <%} %>
 
+                                                <% if(!(data.showUpgradePlan)) { %>
+                                                    <a href="/cancelSubscription"><button class="btn btn-primary">
+                                                        Cancel Subsciption
+                                                    </button></a>
+                                                    <%} %>
+
                                                     <a href="/logout"><button
                                                             class="btn btn-primary">Logout</button></a>
                                 </div>

@@ -15,7 +15,7 @@ passport.use(new GoogleStrategy({
         con.query("SELECT * FROM accounts WHERE email='" + emailToSearch + "'", async (err, result, fields) => {
             if (err) throw err;
             if (!(result.length > 0)) {
-                let sql = "INSERT INTO accounts (firstName,lastName,email,displayName,status) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','" + profile.displayName + "','" + "free" + "')";
+                let sql = "INSERT INTO accounts (firstName,lastName,email,displayName) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','" + profile.displayName  + "')";
                 con.query(sql, function (err, result) {
                     if (err) throw err;
                     let userId = result.insertId;
@@ -47,7 +47,7 @@ passport.use(new FacebookStrategy({
         con.query("SELECT * FROM accounts WHERE email='" + emailToSearch + "'", async (err, result, fields) => {
             if (err) throw err;
             if (!(result.length > 0)) {
-                let sql = "INSERT INTO accounts (firstName,lastName,email,displayName,status) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','" + profile.displayName + "','" + "free" + "')";
+                let sql = "INSERT INTO accounts (firstName,lastName,email,displayName) VALUES ('" + profile.name.givenName + "','" + profile.name.familyName + "','" + emailToSearch + "','" + profile.displayName  + "')";
                 con.query(sql, function (err, result) {
                     if (err) throw err;
                     let userId = result.insertId;

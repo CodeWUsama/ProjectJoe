@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
-const stripe = require("stripe")("sk_test_51I2toSFHfsebTuSvGpJN9fYM7mBYZpUVT6QoZmFHpQx6afwFM7BZCKuShO6VxEQDJJsKoz0ApJMtAhX0f4SljxVt00Nou6oP6P");
+const stripe = require("stripe")("sk_test_51GqgjzBW9KEQsVs7BzlOGCURGhTP7mvDqymwtIUeoQWbxozXDSpv83LnQbGqQLNIIvJ0F8Nx3rOgNtqYG1zrDTj800aeiDNtbJ");
 
 const transport = nodemailer.createTransport(sendgridTransport({
     auth: {
@@ -101,7 +101,10 @@ exports.signup = async (req, res, next) => {
     req.session.code = code;
 
     con.query("SELECT * FROM accounts WHERE email='" + email + "'", function (err, result, fields) {
-        if (err) throw err;
+        if (err) {
+            res.render("errorBadRequest", { data: { message: err.message } })
+            throw err;
+        }
         if (result.length > 0) {
             alreadyExists = true;
             res.render("signup", { data: { error: true, message: "User Already Exists! Try Signing In Instead." } });
@@ -117,7 +120,7 @@ exports.signup = async (req, res, next) => {
                 }).then(resp => {
                     return res.render("verifyEmail", { data: { error: false } });
                 }).catch(err => {
-                    return res.status(400).json({ message: "Error while sending email.... Please try again" });
+                    return res.render("errorBadRequest", { data: { message: err.message } })
                 })
 
             } else {
@@ -162,15 +165,21 @@ exports.verifyEmail = (req, res, next) => {
     const validCode = (req.session.code);
 
     if (enteredCode == validCode) {
-        let sql = "INSERT INTO accounts (firstName,middleName,lastName,displayName,email,password,city,country,status,phone) VALUES ('" + req.session.firstName + "','" + req.session.middleName + "','" + req.session.lastName + "','" + req.session.displayName + "','" + req.session.email + "','" + req.session.password + "','" + req.session.city + "','" + req.session.country + "','" + req.session.status + "','" + req.session.phone + "')";
+        let sql = "INSERT INTO accounts (firstName,middleName,lastName,displayName,email,password,city,country,phone) VALUES ('" + req.session.firstName + "','" + req.session.middleName + "','" + req.session.lastName + "','" + req.session.displayName + "','" + req.session.email + "','" + req.session.password + "','" + req.session.city + "','" + req.session.country + "','" + req.session.phone + "')";
         con.query(sql, function (err, result) {
-            if (err) throw err;
+            if (err) {
+                res.render("errorBadRequest", { data: { message: err.message } })
+                throw err;
+            }
             let userId = result.insertId;
             let sql = "INSERT INTO userAvatarImage (userId,imageSource) VALUES ('" + userId + "','" + req.session.image + "')";
             con.query(sql, function (err, result) {
                 let sql = "INSERT INTO userPlan (userId,planLevel) VALUES ('" + userId + "','" + "free" + "')";
                 con.query(sql, function (err, result) {
-                    if (err) throw err;
+                    if (err) {
+                        res.render("errorBadRequest", { data: { message: err.message } })
+                        throw err;
+                    }
                     req.session.destroy();
                     return res.redirect("login");
                 })
@@ -193,7 +202,9 @@ exports.resendEmail = (req, res, next) => {
     }).then(resp => {
         return res.render("verifyEmail", { data: { error: false } });
     }).catch(err => {
-        return res.status(500).json({ message: "ERROR while sending email" });
+        if (err) {
+            return res.render("errorBadRequest", { data: { message: err.message } });
+        }
     })
 }
 
@@ -208,7 +219,9 @@ exports.resendCode = (req, res, next) => {
     }).then(resp => {
         return res.render("forgotPass-code", { data: { error: false } });
     }).catch(err => {
-        return res.status(500).json({ message: "ERROR while sending email" });
+        if (err) {
+            return res.render("errorBadRequest", { data: { message: err.message } })
+        }
     })
 }
 
@@ -220,17 +233,31 @@ exports.postLogin = async (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
 
-    con.query("SELECT * FROM accounts INNER JOIN userAvatarImage WHERE email='" + email + "'", async (err, result, fields) => {
-        if (err) throw err;
+    con.query("SELECT * FROM accounts WHERE email='" + email + "'", async (err, result, fields) => {
+        if (err) {
+            res.render("errorBadRequest", { data: { message: err.message } })
+            throw err;
+        }
         if (result.length > 0) {
             let validPass = result[0].password;
             const isValid = await bcrypt.compare(password, validPass);
             if (isValid) {
                 req.session.isLoggedIn = true;
                 req.session.displayName = result[0].displayName;
-                req.session.avatar = result[0].imageSource;
                 req.session.email = req.body.email;
+                let sql = "Select * FROM useravatarimage where userId='" + result[0].userId + "'";
+                con.query(sql, (err, result) => {
+                    if (err) {
+                        res.render("errorBadRequest", { data: { message: err.message } })
+                        throw err;
+                    }
+                    req.session.avatar = result[0].imageSource;
+                })
                 con.query("SELECT * FROM userPlan where userId='" + result[0].userId + "'", (err, result, fields) => {
+                    if (err) {
+                        res.render("errorBadRequest", { data: { message: err.message } })
+                        throw err;
+                    }
                     if (result.length > 0) {
                         req.session.plan = result[0].planLevel;
                         return res.redirect("/dashboard");
@@ -260,7 +287,6 @@ exports.displayDashbaord = (req, res, next) => {
 
     let avatarPath;
     let data;
-    // console.log(req.session.plan);
     let showUpgradePlan = req.session.plan == "free" ? true : false;
     if (req.session.googleAuth) {
         avatarPath = req.session.avatar;
@@ -299,7 +325,10 @@ exports.searchAccount = (req, res, next) => {
 exports.verifyAccount = (req, res, next) => {
     req.session.email = req.body.email;
     con.query("SELECT * FROM accounts WHERE email='" + req.session.email + "'", async (err, result, fields) => {
-        if (err) throw err;
+        if (err) {
+            res.render("errorBadRequest", { data: { message: err.message } })
+            throw err;
+        }
         if (result.length > 0) {
             let code = Number.parseInt(1000 + Math.random() * 9000);
             req.session.code = code;
@@ -311,7 +340,10 @@ exports.verifyAccount = (req, res, next) => {
             }).then(resp => {
                 return res.render("forgotPass-code", { data: { error: false } });
             }).catch(err => {
-                return res.status(500).json({ message: "ERROR while sending email" });
+                if (err) {
+                    res.render("errorBadRequest", { data: { message: err.message } })
+                    throw err;
+                }
             })
         }
         else {
@@ -340,7 +372,10 @@ exports.resetPassword = async (req, res, next) => {
     if (req.body.password == req.body.confirmPassword) {
         var sql = "UPDATE accounts SET password = '" + encPass + "' WHERE email = '" + req.session.email + "'";
         con.query(sql, function (err, result) {
-            if (err) throw err;
+            if (err) {
+                res.render("errorBadRequest", { data: { message: err.message } })
+                throw err;
+            }
             req.session.destroy();
             return res.redirect("login");
         });
@@ -362,7 +397,10 @@ exports.completeProfile = (req, res) => {
 
     var sql = "UPDATE accounts SET city = '" + city + "'," + "country='" + country + "'," + "phone='" + phone + "' WHERE email = '" + req.session.email + "'";
     con.query(sql, function (err, result) {
-        if (err) throw err;
+        if (err) {
+            res.render("errorBadRequest", { data: { message: err.message } })
+            throw err;
+        }
         return res.redirect("/dashboard");
     });
 
@@ -372,7 +410,7 @@ exports.payment = async (req, res) => {
 
     try {
         const price = await stripe.prices.create({
-            product: 'prod_Imxwe7LHcEmMBA',
+            product: 'prod_InC1B2YT5ThxqH',
             unit_amount: 1900,
             currency: 'usd',
             recurring: {
@@ -390,13 +428,19 @@ exports.payment = async (req, res) => {
             items: [{
                 price: price.id,
             }],
-        }).then(result => {
+        }).then(stripeRes => {
             let sql = "Select * from accounts where email='" + req.session.email + "'";
             con.query(sql, function (err, result) {
-                if (err) throw err;
-                let sql = "UPDATE userPlan SET planLevel = 'premium' WHERE userId = '" + result[0].userId + "'";
+                if (err) {
+                    res.render("errorBadRequest", { data: { message: err.message } })
+                    throw err;
+                }
+                let sql = "UPDATE userPlan SET planLevel = 'premium', subscriptionId='" + stripeRes.id + "'WHERE userId = '" + result[0].userId + "'";
                 con.query(sql, function (err, result) {
-                    if (err) throw err;
+                    if (err) {
+                        res.render("errorBadRequest", { data: { message: err.message } })
+                        throw err;
+                    }
                     req.session.plan = "premium";
                     res.redirect("/dashboard");
                 });
@@ -407,7 +451,39 @@ exports.payment = async (req, res) => {
         })
 
     } catch (error) {
-        res.render("errorBadRequest",{data:{message:error.message}})
+        res.render("errorBadRequest", { data: { message: error.message } })
     }
 
+}
+
+exports.cancelSubscription = (req, res) => {
+    try {
+        let sql = "Select * from accounts where email='" + req.session.email + "'";
+        con.query(sql, function (err, result) {
+            if (err) throw err;
+            let sql = "Select * from userPlan where userId='" + result[0].userId + "'";
+            con.query(sql, function (err, result) {
+                if (err) {
+                    res.render("errorBadRequest", { data: { message: err.message } })
+                    throw err;
+                }
+                stripe.subscriptions.del(result[0].subscriptionId).then(stripeRes => {
+                    let sql = "Update userPlan set planLevel='free' , subscriptionId=" + null + "  where userId='" + result[0].userId + "'";
+                    con.query(sql, (err, result) => {
+                        if (err) {
+                            res.render("errorBadRequest", { data: { message: err.message } })
+                            throw err;
+                        }
+                        else {
+                            req.session.plan = "free";
+                            res.redirect("/dashboard");
+                        }
+                    })
+                });
+            });
+        });
+    }
+    catch (err) {
+        res.render("errorBadRequest", { data: { message: err.message } })
+    }
 }

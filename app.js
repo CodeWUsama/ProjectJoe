@@ -37,11 +37,18 @@ app.get('/google/callback',
         req.session.googleUser = req.user.displayName;
         req.session.email = req.user.emails[0].value;
         req.session.avatar = req.user.photos[0].value;
-        con.query("SELECT * FROM accounts INNER JOIN userPlan where email='" + req.user.emails[0].value + "'", async (err, result, fields) => {
+        con.query("SELECT * FROM accounts where email='" + req.user.emails[0].value + "'", async (err, result, fields) => {
             if (err) throw err;
             if (result.length > 0) {
-                req.session.plan = result[0].planLevel;
-                res.redirect('/dashboard');
+                let sql = "Select * FROM userPlan where userId='" + result[0].userId + "'";
+                con.query(sql, (err, result) => {
+                    if (err) throw err;
+                    if (result.length > 0) {
+                        req.session.plan = result[0].planLevel;
+                        res.redirect('/dashboard');
+                    }
+
+                })
             }
             else {
                 req.session.plan = "free";
@@ -59,11 +66,18 @@ app.get('/facebook/callback',
         req.session.email = req.user.emails[0].value;
         req.session.googleUser = req.user.displayName;
         req.session.avatar = req.user.photos[0].value;
-        con.query("SELECT * FROM accounts INNER JOIN userPlan where email='" + req.user.emails[0].value + "'", async (err, result, fields) => {
+        con.query("SELECT * FROM accounts where email='" + req.user.emails[0].value + "'", async (err, result, fields) => {
             if (err) throw err;
             if (result.length > 0) {
-                req.session.plan = result[0].planLevel;
-                res.redirect('/dashboard');
+                let sql = "Select * FROM userPlan where userId='" + result[0].userId + "'";
+                con.query(sql, (err, result) => {
+                    if (err) throw err;
+                    if (result.length > 0) {
+                        req.session.plan = result[0].planLevel;
+                        res.redirect('/dashboard');
+                    }
+
+                })
             }
             else {
                 req.session.plan = "free";

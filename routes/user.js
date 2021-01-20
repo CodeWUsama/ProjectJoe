@@ -22,6 +22,7 @@ router.post("/verifyAccount", userController.verifyAccount);
 router.post("/verifyCode", userController.verifyCode);
 router.post("/resetPassword", userController.resetPassword);
 router.post("/completeProfile", isAuthorized.authroize, userController.completeProfile);
-router.post("/payment",  isAuthorized.authroize, userController.payment);
+router.post("/payment", isAuthorized.authroize, userController.payment);
+router.get("/cancelSubscription", isAuthorized.authroize, userController.cancelSubscription);
 
 module.exports = router;
