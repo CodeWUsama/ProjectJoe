@@ -4,8 +4,6 @@
 <head>
     <link href="/css/style2.css" rel="stylesheet" />
     <title>Dashboard</title>
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="/js/script.js" defer></script>
 </head>
 
 <body>
@@ -26,24 +24,32 @@
                                     </div>
                                     <p class="page-header-text">This dashboard presents you with multiple options to
                                         manage your account</p>
-                                    <% if(data.showUpdateProfile) { %>
-                                        <a href="/completeProfile"><button class="btn btn-primary">Update
-                                                Profile</button></a>
+
+                                    <% if((data.expiringAt)) { %>
+                                        <p class="page-header-text">Your premium plan will be expired on <%=
+                                                data.expiringAt %>
+                                        </p>
                                         <%} %>
 
-                                            <% if(data.showUpgradePlan) { %>
-                                                <a href="/pricing"><button class="btn btn-primary">Upgrade
-                                                        Plan</button></a>
+                                            <% if(data.showUpdateProfile) { %>
+                                                <a href="/completeProfile"><button class="btn btn-primary">Update
+                                                        Profile</button></a>
                                                 <%} %>
 
-                                                <% if(!(data.showUpgradePlan)) { %>
-                                                    <a href="/cancelSubscription"><button class="btn btn-primary">
-                                                        Cancel Subsciption
-                                                    </button></a>
-                                                    <%} %>
+                                                    <% if(data.showUpgradePlan) { %>
+                                                        <a href="/pricing"><button class="btn btn-primary">Upgrade
+                                                                Plan</button></a>
+                                                        <%} %>
 
-                                                    <a href="/logout"><button
-                                                            class="btn btn-primary">Logout</button></a>
+                                                            <% if((!data.showUpgradePlan && !data.expiringAt)) { %>
+                                                                <a href="/cancelSubscription"><button
+                                                                        class="btn btn-primary">
+                                                                        Cancel Subsciption
+                                                                    </button></a>
+                                                                <%} %>
+
+                                                                    <a href="/logout"><button
+                                                                            class="btn btn-primary">Logout</button></a>
                                 </div>
                             </div>
                         </div>

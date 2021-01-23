@@ -3,11 +3,23 @@ const bodyParser = require('body-parser');
 const app = express();
 const path = require("path");
 const session = require("express-session");
+const con = require('./mysqlconnection');
+require('dotenv').config();
+process.on('uncaughtException', function (err) {});
+con.connect(function (err) {
+    if (err) {
+        app.use("/", (req, res) => {
+            return res.render("throwError");
+        });
+        return err;
+    };
+    app.use("/", routes);
+    console.log("Mysql Connected!");
+});
 const routes = require("./routes/user");
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 const passport = require("passport");
-const con = require('./mysqlconnection');
 require("./controllers/passport-setup");
 app.use(session({
     secret: "secret_key",
@@ -15,10 +27,9 @@ app.use(session({
     resave: false
 }))
 
-app.use(express.json())
+app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use("/", routes);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -86,5 +97,5 @@ app.get('/facebook/callback',
         })
     });
 
-app.listen(8080);
+app.listen(process.env.serverPort);
 

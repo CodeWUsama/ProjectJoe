@@ -4,9 +4,9 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 const con = require("./../mysqlconnection");
 
 passport.use(new GoogleStrategy({
-    clientID: "701851902748-umfgqbhon1di9f714ko9c4j1fflvvq85.apps.googleusercontent.com",
-    clientSecret: "td6HDZNu-9u83DX3rENstGGs",
-    callbackURL: "http://localhost:8080/google/callback"
+    clientID: process.env.googleClientId,
+    clientSecret: process.env.googleClientSecret,
+    callbackURL: process.env.googleCallbackURL
 },
     function (accessToken, refreshToken, profile, cb) {
         //Search that profile.id in mysql 
@@ -36,9 +36,9 @@ passport.use(new GoogleStrategy({
 ));
 
 passport.use(new FacebookStrategy({
-    clientID: "406109940646865",
-    clientSecret: "18073a628e75e6629fdf19992ac879a7",
-    callbackURL: "http://localhost:8080/facebook/callback",
+    clientID: process.env.facebookClientID,
+    clientSecret: process.env.facebookClientSecret,
+    callbackURL: process.env.facebookCallbackURL,
     profileFields: ['id', 'displayName', 'name', 'picture.type(large)', 'email']
 },
     function (accessToken, refreshToken, profile, done) {

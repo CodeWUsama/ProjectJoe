@@ -4,13 +4,6 @@ let con = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "",
-    database:"testdb2"
+    database: "thesunestate"
 });
-con.connect(function (err) {
-    if (err) {
-        throw err;
-    };
-    console.log("Mysql Connected!");
-});
-
-module.exports=con
+module.exports = con;

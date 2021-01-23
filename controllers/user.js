@@ -4,11 +4,12 @@ const nodemailer = require('nodemailer');
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
-const stripe = require("stripe")("sk_test_51GqgjzBW9KEQsVs7BzlOGCURGhTP7mvDqymwtIUeoQWbxozXDSpv83LnQbGqQLNIIvJ0F8Nx3rOgNtqYG1zrDTj800aeiDNtbJ");
+const { use } = require("../routes/user");
+const stripe = require("stripe")(process.env.stripeTK);
 
 const transport = nodemailer.createTransport(sendgridTransport({
     auth: {
-        api_key: "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"
+        api_key: process.env.sendGridKey
     }
 }))
 
@@ -157,7 +158,7 @@ exports.displaySignup = (req, res, next) => {
 }
 
 exports.displayPricing = (req, res, next) => {
-    res.render("pricing");
+    res.render("pricing", { apiKey: process.env.stripePK });
 }
 
 exports.verifyEmail = (req, res, next) => {
@@ -284,31 +285,64 @@ exports.postLogin = async (req, res, next) => {
 }
 
 exports.displayDashbaord = (req, res, next) => {
+    let expiringAt;
+    let sql = "Select * from accounts where email='" + req.session.email + "'";
+    con.query(sql, (err, result) => {
+        if (err) throw err;
+        if (result) {
+            let userId = result[0].userId;
+            let sql = "Select * from userPlan where userId='" + userId + "'";
+            con.query(sql, (err, result) => {
+                if (err) throw err;
+                if (result) {
+                    let expireAt = result[0].expireAt;
+                    if (expireAt) {
+                        let currDate = Math.round(new Date().getTime() / 1000);
+                        if (currDate >= expireAt) {
+                            req.session.plan = "free";
+                            let sql1 = "Update userPlan set expireAt=NULL, subscriptionSince=NULL, subscriptionId=NULL, planLevel='free' where userId='" + userId + "'";
+                            con.query(sql1, (err, result) => {
+                                if (err) {
+                                    res.render("errorBadRequest", { data: { message: err.message } })
+                                    throw err;
+                                }
+                            });
+                        }
+                        else {
+                            let temp = new Date(expireAt * 1000);;
+                            expiringAt = temp;
+                        }
+                    }
+                    let avatarPath;
+                    let data;
+                    let showUpgradePlan = req.session.plan == "free" ? true : false;
+                    if (req.session.googleAuth) {
+                        avatarPath = req.session.avatar;
+                        data = {
+                            user: req.session.googleUser,
+                            avatar: avatarPath,
+                            showUpdateProfile: true,
+                            showUpgradePlan: showUpgradePlan,
+                            expiringAt: expiringAt
+                        }
+                    }
 
-    let avatarPath;
-    let data;
-    let showUpgradePlan = req.session.plan == "free" ? true : false;
-    if (req.session.googleAuth) {
-        avatarPath = req.session.avatar;
-        data = {
-            user: req.session.googleUser,
-            avatar: avatarPath,
-            showUpdateProfile: true,
-            showUpgradePlan: showUpgradePlan
+                    else {
+                        let avatar = req.session.avatar;
+                        let myArray = (avatar.split("/"));
+                        avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
+                        data = {
+                            user: req.session.displayName,
+                            avatar: avatarPath,
+                            showUpgradePlan: showUpgradePlan,
+                            expiringAt: expiringAt
+                        }
+                    }
+                    res.render("dashboard", { data: data });
+                }
+            })
         }
-    }
-
-    else {
-        let avatar = req.session.avatar;
-        let myArray = (avatar.split("/"));
-        avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
-        data = {
-            user: req.session.displayName,
-            avatar: avatarPath,
-            showUpgradePlan: showUpgradePlan
-        }
-    }
-    res.render("dashboard", { data: data });
+    })
 }
 
 exports.logout = (req, res, next) => {
@@ -410,7 +444,7 @@ exports.payment = async (req, res) => {
 
     try {
         const price = await stripe.prices.create({
-            product: 'prod_InC1B2YT5ThxqH',
+            product: process.env.prod_id,
             unit_amount: 1900,
             currency: 'usd',
             recurring: {
@@ -435,7 +469,7 @@ exports.payment = async (req, res) => {
                     res.render("errorBadRequest", { data: { message: err.message } })
                     throw err;
                 }
-                let sql = "UPDATE userPlan SET planLevel = 'premium', subscriptionId='" + stripeRes.id + "'WHERE userId = '" + result[0].userId + "'";
+                let sql = "UPDATE userPlan SET planLevel = 'premium', subscriptionId='" + stripeRes.id + "' ,subscriptionSince='" + (new Date()) + "' , expireAt=NULL WHERE userId = '" + result[0].userId + "'";
                 con.query(sql, function (err, result) {
                     if (err) {
                         res.render("errorBadRequest", { data: { message: err.message } })
@@ -467,19 +501,21 @@ exports.cancelSubscription = (req, res) => {
                     res.render("errorBadRequest", { data: { message: err.message } })
                     throw err;
                 }
-                stripe.subscriptions.del(result[0].subscriptionId).then(stripeRes => {
-                    let sql = "Update userPlan set planLevel='free' , subscriptionId=" + null + "  where userId='" + result[0].userId + "'";
-                    con.query(sql, (err, result) => {
-                        if (err) {
-                            res.render("errorBadRequest", { data: { message: err.message } })
-                            throw err;
-                        }
-                        else {
-                            req.session.plan = "free";
-                            res.redirect("/dashboard");
-                        }
-                    })
-                });
+                stripe.subscriptions.update(result[0].subscriptionId, { cancel_at_period_end: true })
+                    .then(stripeRes => {
+                        let cancelAt = stripeRes.cancel_at;
+                        let sql = "Update userPlan set expireAt='" + cancelAt + "'  where userId='" + result[0].userId + "'";
+                        con.query(sql, (err, result) => {
+                            if (err) {
+                                res.render("errorBadRequest", { data: { message: err.message } })
+                                throw err;
+                            }
+                            else {
+                                req.session.plan = "free";
+                                res.redirect("/dashboard");
+                            }
+                        })
+                    });
             });
         });
     }
