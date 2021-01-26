@@ -4,7 +4,6 @@ const nodemailer = require('nodemailer');
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 const Joi = require("joi");
 const bcrypt = require("bcrypt");
-const { use } = require("../routes/user");
 const stripe = require("stripe")(process.env.stripeTK);
 
 const transport = nodemailer.createTransport(sendgridTransport({
@@ -298,17 +297,7 @@ exports.displayDashbaord = (req, res, next) => {
                     let expireAt = result[0].expireAt;
                     if (expireAt) {
                         let currDate = Math.round(new Date().getTime() / 1000);
-                        if (currDate >= expireAt) {
-                            req.session.plan = "free";
-                            let sql1 = "Update userPlan set expireAt=NULL, subscriptionSince=NULL, subscriptionId=NULL, planLevel='free' where userId='" + userId + "'";
-                            con.query(sql1, (err, result) => {
-                                if (err) {
-                                    res.render("errorBadRequest", { data: { message: err.message } })
-                                    throw err;
-                                }
-                            });
-                        }
-                        else {
+                        if (currDate < expireAt) {
                             let temp = new Date(expireAt * 1000);;
                             expiringAt = temp;
                         }
@@ -326,11 +315,16 @@ exports.displayDashbaord = (req, res, next) => {
                             expiringAt: expiringAt
                         }
                     }
-
                     else {
+                        //error line
                         let avatar = req.session.avatar;
-                        let myArray = (avatar.split("/"));
-                        avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
+                        if (avatar) {
+                            let myArray = (avatar.split("/"));
+                            avatarPath = "/" + (myArray[1]) + "/" + (myArray[2]);
+                        }
+                        else {
+                            avatarPath="/Images/avatar.png"
+                        }
                         data = {
                             user: req.session.displayName,
                             avatar: avatarPath,
@@ -511,7 +505,6 @@ exports.cancelSubscription = (req, res) => {
                                 throw err;
                             }
                             else {
-                                req.session.plan = "free";
                                 res.redirect("/dashboard");
                             }
                         })

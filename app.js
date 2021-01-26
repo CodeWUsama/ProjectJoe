@@ -5,7 +5,9 @@ const path = require("path");
 const session = require("express-session");
 const con = require('./mysqlconnection');
 require('dotenv').config();
+
 process.on('uncaughtException', function (err) {});
+
 con.connect(function (err) {
     if (err) {
         app.use("/", (req, res) => {
@@ -16,6 +18,7 @@ con.connect(function (err) {
     app.use("/", routes);
     console.log("Mysql Connected!");
 });
+
 const routes = require("./routes/user");
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
