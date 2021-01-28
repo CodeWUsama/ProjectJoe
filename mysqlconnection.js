@@ -4,6 +4,6 @@ let con = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "",
-    database: "thesunestate"
+    database: "finalsubmission"
 });
 module.exports = con;
